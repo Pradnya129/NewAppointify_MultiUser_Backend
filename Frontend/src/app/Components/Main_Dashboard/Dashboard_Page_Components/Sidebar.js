@@ -4,6 +4,8 @@ import { jwtDecode } from "jwt-decode";
 import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
 
+
+
 const Sidebar = ({ mobileSidebarVisible, setMobileSidebarVisible }) => {
   const [openMenu, setOpenMenu] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -239,13 +241,13 @@ const Sidebar = ({ mobileSidebarVisible, setMobileSidebarVisible }) => {
           <ul className="menu-inner py-1">
             {/* --- Superadmin Menus --- */}
             <li className="menu-item">
-              <Link href="/Dashboard/Users" className="menu-link">
+              <Link href="/Dashboard/AdminUsers" className="menu-link">
                 <i className="menu-icon tf-icons ri-group-line me-2"></i>
                 <div>Users</div>
               </Link>
             </li>
             <li className="menu-item">
-              <Link href="/Dashboard/Coupons" className="menu-link">
+              <Link href="/Dashboard/Coupans" className="menu-link">
                 <i className="menu-icon tf-icons ri-coupon-line me-2"></i>
                 <div>Coupons</div>
               </Link>
@@ -253,7 +255,7 @@ const Sidebar = ({ mobileSidebarVisible, setMobileSidebarVisible }) => {
             <li className="menu-item">
               <Link href="/Dashboard/Plans" className="menu-link">
                 <i className="menu-icon tf-icons ri-price-tag-3-line me-2"></i>
-                <div>Plans</div>
+                <div>Subscription Plans</div>
               </Link>
             </li>
             <li className="menu-item">

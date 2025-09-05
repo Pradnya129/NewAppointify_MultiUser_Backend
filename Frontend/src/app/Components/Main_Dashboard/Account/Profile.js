@@ -143,11 +143,12 @@ const Profile = () => {
   const [user, setUser] = useState({});
   const [showModal, setShowModal] = useState(false);
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const adminId = typeof window !== 'undefined' ? localStorage.getItem('adminId') : null; // ✅ added
 
   useEffect(() => {
-    if (token) {
+    if (token && adminId) {
       axios
-        .get(`http://localhost:5000/api/landing/${adminId}`, {
+        .get(`${API_URL}/landing/${adminId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -158,7 +159,7 @@ const Profile = () => {
         })
         .catch((err) => console.error('Error fetching profile:', err));
     }
-  }, [token, showModal]);
+  }, [token, showModal, adminId]);
 
   const handleFieldUpdate = async (key, newValue) => {
     const updatedUser = { ...user, [key]: newValue };
@@ -166,7 +167,7 @@ const Profile = () => {
 
     try {
       await axios.patch(
-        `http://localhost:5000/api/landing/${adminId}`,
+        `${API_URL}/landing/${adminId}`,
         { key, value: newValue },
         {
           headers: {
@@ -194,32 +195,24 @@ const Profile = () => {
     }
 
     try {
-      const res = await axios.get(`http://localhost:5000/api/landing/${adminId}`, {
+      const res = await axios.get(`${API_URL}/landing/${adminId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.data.length > 0) {
-        await axios.patch(
-          `http://localhost:5000/api/landing/${adminId}`,
-          newData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data',
-            },
-          }
-        );
+        await axios.patch(`${API_URL}/landing/${adminId}`, newData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
       } else {
-        await axios.post(
-          `http://localhost:5000/api/landing`,
-          newData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data',
-            },
-          }
-        );
+        await axios.post(`${API_URL}/landing`, newData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
       }
 
       setUser(newData);
@@ -245,11 +238,6 @@ const Profile = () => {
                   <i className="ri-lock-line me-2"></i> Security
                 </Link>
               </li>
-              {/* <li className="nav-item">
-                <Link className="nav-link" href="/Dashboard/Billing">
-                  <i className="ri-bookmark-line me-2"></i> Billing & Plans
-                </Link>
-              </li> */}
             </ul>
           </div>
 
@@ -257,7 +245,7 @@ const Profile = () => {
             <div className="user-profile-header d-flex flex-column flex-md-row align-items-center p-4 gap-4">
               <div className="text-center">
                 <img
-                  src={user.profileImage && `https://appointify.coinagesoft.com${user.profileImage}`}
+                  src={user.profileImage && `https://appointify.coinagesoft.com${user.profileImage}` ||  '/assets/img/160x160/img8.jpg'}
                   alt="Profile"
                   className="rounded-circle border shadow"
                   style={{ width: '150px', height: '150px', objectFit: 'cover' }}
@@ -312,7 +300,7 @@ const Profile = () => {
               onClick={() => setShowModal(true)}
               className="btn btn-outline-primary px-4 py-2 rounded-pill shadow-sm"
             >
-               Edit Profile
+              Edit Profile
             </button>
           </div>
         </div>

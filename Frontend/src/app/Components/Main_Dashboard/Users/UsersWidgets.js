@@ -9,45 +9,55 @@ const UsersWidgets = () => {
     pendingAppointments: 0,
   });
 
-  useEffect(() => {
-    fetch(`http://localhost:5000/api/customer-appointments/`)
-      .then((res) => res.json())
-      .then((data) => {
-        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-        const patientEmails = new Set();
-        let active = 0;
-        let completed = 0;
-        let pending = 0;
+useEffect(() => {
+  fetch(`http://localhost:5000/api/customer-appointments/`)
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Appointments API response:", data);
 
-        data.forEach((appointment) => {
-          const appointmentDate = appointment.appointmentDate;
-          const status = appointment.appointmentStatus;
+      // ✅ Extract appointments correctly
+      let appointments = [];
+      if (Array.isArray(data)) {
+        appointments = data; // already an array
+      } else if (Array.isArray(data.appointments)) {
+        appointments = data.appointments; // nested inside "appointments"
+      } else if (Array.isArray(data.data)) {
+        appointments = data.data; // nested inside "data"
+      } else {
+        console.error("Unexpected API format:", data);
+        return;
+      }
 
-          // Count unique patients
-          if (appointment.email) {
-            patientEmails.add(appointment.email);
-          }
+      const patientEmails = new Set();
+      let active = 0, completed = 0, pending = 0;
 
-          // Assume:
-          // 1 = Active, 2 = Completed, 0 = Pending (adjust these if your API uses different codes)
-          if (status === 0) {
-            active++;
-          } else if (status === 1) {
-            completed++;
-          } else if (status === 4) {
-            pending++;
-          }
-        });
+      appointments.forEach((appointment) => {
+        const status = appointment.appointmentStatus;
 
-        setStats({
-          totalPatients: patientEmails.size,
-          activeAppointments: active,
-          completedAppointments: completed,
-          pendingAppointments: pending,
-        });
-      })
-      .catch((error) => console.error('Error fetching dashboard stats:', error));
-  }, []);
+        if (appointment.email) {
+          patientEmails.add(appointment.email);
+        }
+
+        // adjust these based on your backend's status codes
+        if (status === 0) {
+          active++;
+        } else if (status === 1) {
+          completed++;
+        } else if (status === 4) {
+          pending++;
+        }
+      });
+
+      setStats({
+        totalPatients: patientEmails.size,
+        activeAppointments: active,
+        completedAppointments: completed,
+        pendingAppointments: pending,
+      });
+    })
+    .catch((error) => console.error("Error fetching dashboard stats:", error));
+}, []);
+
 
   return (
     <div className="row g-6 mb-6">
