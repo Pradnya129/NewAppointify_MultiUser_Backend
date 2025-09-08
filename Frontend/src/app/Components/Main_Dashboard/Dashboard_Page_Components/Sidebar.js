@@ -259,9 +259,9 @@ const Sidebar = ({ mobileSidebarVisible, setMobileSidebarVisible }) => {
               </Link>
             </li>
             <li className="menu-item">
-              <Link href="/Dashboard/Transactions" className="menu-link">
+              <Link href="/Dashboard/SubscriptionRenewals" className="menu-link">
                 <i className="menu-icon tf-icons ri-wallet-line me-2"></i>
-                <div>Transactions</div>
+                <div>Subscription Renewals</div>
               </Link>
             </li>
           </ul>
