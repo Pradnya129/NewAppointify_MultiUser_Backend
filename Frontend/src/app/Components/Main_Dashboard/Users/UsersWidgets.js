@@ -1,6 +1,9 @@
 'use client';
+import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 const API_URL = process.env.REACT_APP_API_URL;
+import { jwtDecode } from "jwt-decode";
+
 const UsersWidgets = () => {
   const [stats, setStats] = useState({
     totalPatients: 0,
@@ -10,10 +13,20 @@ const UsersWidgets = () => {
   });
 
 useEffect(() => {
-  fetch(`http://localhost:5000/api/customer-appointments/`)
-    .then((res) => res.json())
+     const token = localStorage.getItem("token");
+  
+    if (!token) return;
+  
+    const decoded = jwtDecode(token);
+    const adminId = decoded.id; 
+  axios.get(`http://localhost:5000/api/customer-appointments/admin/${adminId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    })
     .then((data) => {
-      console.log("Appointments API response:", data);
+      console.log("Appointments API response:", data.data.data);
 
       // ✅ Extract appointments correctly
       let appointments = [];
@@ -21,8 +34,8 @@ useEffect(() => {
         appointments = data; // already an array
       } else if (Array.isArray(data.appointments)) {
         appointments = data.appointments; // nested inside "appointments"
-      } else if (Array.isArray(data.data)) {
-        appointments = data.data; // nested inside "data"
+      } else if (Array.isArray(data.data.data)) {
+        appointments = data.data.data; // nested inside "data"
       } else {
         console.error("Unexpected API format:", data);
         return;

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import ChartComponent from './ChartComponent';
 import axios from 'axios';
+import { jwtDecode } from "jwt-decode";
 
 const Dashboard_Content = () => {
   const [stats, setStats] = useState({
@@ -26,8 +27,20 @@ const formatMinutesToHHMM = (minutes) => {
 
 
 useEffect(() => {
-  axios.get('http://localhost:5000/api/customer-appointments/')
+     const token = localStorage.getItem("token");
+  
+    if (!token) return;
+  
+    const decoded = jwtDecode(token);
+    const adminId = decoded.id; 
+  axios.get(`http://localhost:5000/api/customer-appointments/admin/${adminId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    })
     .then((res) => {
+      console.log(res)
       const appointments = res.data?.data || []; // <- inner array
       if (appointments.length === 0) return;
 

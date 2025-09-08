@@ -29,6 +29,9 @@ Chart.register(
   BarController,
   LineController
 );
+import { jwtDecode } from "jwt-decode";
+import axios from 'axios';
+
 
 const ChartComponent = () => {
   const revenueChartRef = useRef(null);
@@ -47,8 +50,20 @@ const ChartComponent = () => {
  useEffect(() => {
   async function fetchData() {
     try {
+       const token = localStorage.getItem("token");
+  
+    if (!token) return;
+  
+    const decoded = jwtDecode(token);
+    const adminId = decoded.id; 
       const [appointmentsRes, plansRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/customer-appointments/`),
+           
+  axios.get(`http://localhost:5000/api/customer-appointments/admin/${adminId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
         fetch(`http://localhost:5000/api/admin/plans/all`, {
           headers: {
             // If your endpoint requires auth
@@ -57,11 +72,10 @@ const ChartComponent = () => {
         }),
       ]);
 
-      const appointmentsJson = await appointmentsRes.json();
       const plansJson = await plansRes.json();
 
       // appointmentsJson is probably { success, data: [...] }
-      const appointments = appointmentsJson?.data || [];
+      const appointments = appointmentsRes?.data || [];
       const plans = plansJson?.data || [];
 
       setAppointments(appointments);
