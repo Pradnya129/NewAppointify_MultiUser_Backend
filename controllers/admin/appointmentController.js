@@ -89,7 +89,6 @@ exports.createPaidAppointment = async (req, res, next) => {
     }
 };
 
-
 // 📌 POST /api/customer-appointments/verify-payment
 exports.verifyPayment = async (req, res, next) => {
     try {
@@ -187,69 +186,72 @@ exports.createFreeAppointment = async (req, res, next) => {
     }
 };
 
-
+// 📌 GET /api/customer-appointments
 // 📌 GET /api/customer-appointments
 exports.getAllAppointments = async (req, res, next) => {
-    try {
-        const appointments = await CustomerAppointment.findAll();
-        res.json({ success: true, data: appointments });
-    } catch (err) {
-        next(err);
-    }
+  try {
+    const { id: adminId } = req.user; // comes from JWT payload
+    
+    const appointments = await CustomerAppointment.findAll({
+      where: { adminId }
+    });
+
+    res.json({ success: true, data: appointments });
+  } catch (err) {
+    console.error("Error in getAllAppointments:", err);
+    next(err);
+  }
 };
 
+
+// 📌 GET /api/customer-appointments/clients/:adminId
 // 📌 GET /api/customer-appointments/clients
 exports.getUniqueClients = async (req, res, next) => {
-    try {
-        const all = await CustomerAppointment.findAll();
+  try {
+    const { id: adminId } = req.user; // adminId from JWT
 
-        if (!all.length) {
-            return res.json({
-                success: true,
-                data: [],
-                message: 'No appointments found yet.'
-            });
-        }
+    // 🔐 Filter only by adminId
+    const all = await CustomerAppointment.findAll({
+      where: { adminId }
+    });
 
-        const grouped = {};
-
-        all.forEach((appt) => {
-            const userId = appt.clientId;
-            if (!userId) return; // 🛑 Skip invalid rows (null clientId)
-
-            if (!grouped[userId]) {
-                grouped[userId] = {
-                    clientId: userId,
-                    firstName: appt.firstName,
-                    lastName: appt.lastName,
-                    email: appt.email,
-                    phoneNumber: appt.phoneNumber,
-                    totalAppointments: 1,
-                    lastAppointment: appt.createdAt
-                };
-            } else {
-                grouped[userId].totalAppointments += 1;
-                grouped[userId].lastAppointment =
-                    new Date(appt.createdAt) > new Date(grouped[userId].lastAppointment)
-                        ? appt.createdAt
-                        : grouped[userId].lastAppointment;
-            }
-        });
-
-        const result = Object.values(grouped);
-
-        if (!result.length) {
-            return res.status(200).json({
-                success: true,
-                data: [],
-                message: 'No unique clients with valid clientId found.'
-            });
-        }
-
-        return res.json({ success: true, data: result });
-    } catch (err) {
-        next(err);
+    if (!all.length) {
+      return res.json({
+        success: true,
+        data: [],
+        message: 'No appointments found yet for this admin.'
+      });
     }
+
+    const grouped = {};
+    all.forEach((appt) => {
+      const userId = appt.clientId;
+      if (!userId) return;
+
+      if (!grouped[userId]) {
+        grouped[userId] = {
+          clientId: userId,
+          firstName: appt.firstName,
+          lastName: appt.lastName,
+          email: appt.email,
+          phoneNumber: appt.phoneNumber,
+          totalAppointments: 1,
+          lastAppointment: appt.createdAt
+        };
+      } else {
+        grouped[userId].totalAppointments += 1;
+        grouped[userId].lastAppointment =
+          new Date(appt.createdAt) > new Date(grouped[userId].lastAppointment)
+            ? appt.createdAt
+            : grouped[userId].lastAppointment;
+      }
+    });
+
+    res.json({ success: true, data: Object.values(grouped) });
+  } catch (err) {
+    console.error('Error in getUniqueClients:', err);
+    next(err);
+  }
 };
 
 
@@ -340,7 +342,6 @@ Please be prepared accordingly.
     }
 };
 
-
 // 📌 DELETE /api/customer-appointments/:id
 exports.deleteAppointment = async (req, res, next) => {
     try {
@@ -385,7 +386,6 @@ exports.getBookedSlotsByDate = async (req, res, next) => {
     }
 };
 
-//  GET /api/customer-appointments/:id
 // Get single appointment by ID
 
 exports.getAppointmentById = async (req, res, next) => {
@@ -403,7 +403,6 @@ exports.getAppointmentById = async (req, res, next) => {
 
 // 🔹 2. PATCH /api/customer-appointments/update-user/:userId
 // 🔄 Update user info by userId across all appointments
-
 
 // 📌 PATCH /api/customer-appointments/update-user/:userId
 exports.updateUserInfoByUserId = async (req, res, next) => {
@@ -437,7 +436,6 @@ exports.updateUserInfoByUserId = async (req, res, next) => {
     next(err);
   }
 };
-
 
 // DELETE /api/customer-appointments/by-user/:userId
 // 🗑 Delete all appointments for a user

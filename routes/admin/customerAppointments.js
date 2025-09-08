@@ -1,54 +1,54 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../../controllers/admin/appointmentController.js');
-
+const authMiddleware = require('../../middleware/authMiddleware.js');
+const roleMiddleware = require('../../middleware/roleMiddleware.js');
 
 
 // ✅ Free appointment (no payment)
-router.post('/free', controller.createFreeAppointment);
+router.post('/free',authMiddleware, roleMiddleware('admin'), controller.createFreeAppointment);
 
 // ✅ Paid appointment after payment success
-router.post('/paid', controller.createPaidAppointment);
+router.post('/paid',authMiddleware, roleMiddleware('admin'), controller.createPaidAppointment);
 
 // ✅ Razorpay Payment Verification
-router.post('/verify-payment', controller.verifyPayment);
+router.post('/verify-payment',authMiddleware, roleMiddleware('admin'), controller.verifyPayment);
 
 // 📋 All appointments (admin view)
-router.get('/', controller.getAllAppointments);
+router.get('/', authMiddleware, roleMiddleware('admin'),controller.getAllAppointments);
 
 // 🧑 Unique clients (grouped by clientId)
-router.get('/clients', controller.getUniqueClients);
+router.get('/clients',authMiddleware, roleMiddleware('admin'), controller.getUniqueClients);
 
 // 🔍 Single appointment
-router.get('/:id', controller.getAppointmentById);
-
-
+router.get('/:id',authMiddleware, roleMiddleware('admin'), controller.getAppointmentById);
 
 // 📆 Booked slots by date (for calendar UI)
-router.get('/booked-slots/:date', controller.getBookedSlotsByDate);
+router.get('/booked-slots/:date',authMiddleware, roleMiddleware('admin'), controller.getBookedSlotsByDate);
 
 // 🔄 Update full appointment (admin side)
-router.patch('/update/:id', controller.patchUpdateAppointment);
+router.patch('/update/:id',authMiddleware, roleMiddleware('admin'), controller.patchUpdateAppointment);
 
 // ✂️ Delete appointment
-router.delete('/delete/:id', controller.deleteAppointment);
+router.delete('/delete/:id', authMiddleware, roleMiddleware('admin'),controller.deleteAppointment);
 
 // 🧾 Generate PDF invoice (base64 format)
-router.get('/invoice/:id', controller.generateInvoice);
+router.get('/invoice/:id',authMiddleware, roleMiddleware('admin'), controller.generateInvoice);
 
 // ✉️ Send email reminder manually
-router.post('/send-reminder/:id', controller.sendReminder);
+router.post('/send-reminder/:id',authMiddleware, roleMiddleware('admin'), controller.sendReminder);
 
 // 🔁 Update all records by userId (used in profile edit)
-router.patch('/update-user/:userId', controller.updateUserInfoByUserId);
+router.patch('/update-user/:userId',authMiddleware, roleMiddleware('admin'), controller.updateUserInfoByUserId);
 
 // ❌ Delete all appointments of a client (admin side bulk delete)
-router.delete('/by-user/:userId', controller.deleteAppointmentsByUserId);
+router.delete('/by-user/:userId',authMiddleware, roleMiddleware('admin'), controller.deleteAppointmentsByUserId);
 
 // 📊 Get status-wise counts (Scheduled, Pending, Cancelled)
-router.get('/all/status-counts', controller.getStatusCounts);
+router.get('/all/status-counts',authMiddleware, roleMiddleware('admin'), controller.getStatusCounts);
 
 // 📁 Filter appointments by adminId
-router.get('/admin/:adminId', controller.getAppointmentsByAdmin);
+router.get('/admin/:adminId',authMiddleware, roleMiddleware('admin'), controller.getAppointmentsByAdmin);
+
 
 module.exports = router;
