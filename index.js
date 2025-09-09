@@ -4,7 +4,7 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const errorHandler = require('./middleware/errorHandler.js');
-require('./jobs/renewalReminderJob.js')
+require('./jobs/renewalReminderJob.js');
 require('./jobs/appointmentRemainderCron.js'); // make sure path is correct
 
 const {
@@ -35,11 +35,15 @@ const notificationRoutes = require('./routes/admin/adminNotificationPreferenceRo
 const couponRoutes = require('./routes/superAdmin/coupanRoutes.js');
 const tenantRoutes = require('./routes/superAdmin/tenantRoutes.js');
 
-// Ensure upload directory exists
+// ✅ Ensure upload directories exist
 const landingPath = path.join(__dirname, 'public', 'uploads', 'landing');
-if (!fs.existsSync(landingPath)) {
-  fs.mkdirSync(landingPath, { recursive: true });
-}
+const section2Path = path.join(__dirname, 'public', 'uploads', 'section2Image');
+
+[landingPath, section2Path].forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -48,6 +52,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use(errorHandler); // Global error handler
+
+// ✅ Serve all uploads (landing + section2Image)
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 // Routes

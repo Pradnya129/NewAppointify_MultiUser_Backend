@@ -13,21 +13,20 @@ router.post(
   landingCtrl.createLanding
 );
 
+router.patch(
+  '/:id',
+  upload.fields([
+    { name: 'profileImage', maxCount: 1 },
+    { name: 'section2_Image', maxCount: 1 }
+  ]),
+  landingCtrl.partialUpdate
+);
 // 📍 Get landing by adminId
 router.get('/:adminId', landingCtrl.getLandingByAdmin);
 
 // 📍 Update fully
 router.put('/:id', landingCtrl.updateLanding);
 
-// 📍 Update partially
-router.patch(
-  '/:id',
-  upload.fields([
-    { name: 'profileImage', maxCount: 1 },
-     { name: 'section2_Image', maxCount: 1 }
-  ]),
-  landingCtrl.partialUpdate
-);
 
 // 📍 Delete landing data
 router.delete('/:id', landingCtrl.deleteLanding);
