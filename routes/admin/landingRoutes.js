@@ -8,7 +8,7 @@ router.post(
   '/',
   upload.fields([
     { name: 'profileImage', maxCount: 1 },
-    { name: 'backgroundImage', maxCount: 1 }
+    { name: 'section2_Image', maxCount: 1 }
   ]),
   landingCtrl.createLanding
 );
@@ -20,7 +20,14 @@ router.get('/:adminId', landingCtrl.getLandingByAdmin);
 router.put('/:id', landingCtrl.updateLanding);
 
 // 📍 Update partially
-router.patch('/:id', landingCtrl.partialUpdate);
+router.patch(
+  '/:id',
+  upload.fields([
+    { name: 'profileImage', maxCount: 1 },
+     { name: 'section2_Image', maxCount: 1 }
+  ]),
+  landingCtrl.partialUpdate
+);
 
 // 📍 Delete landing data
 router.delete('/:id', landingCtrl.deleteLanding);

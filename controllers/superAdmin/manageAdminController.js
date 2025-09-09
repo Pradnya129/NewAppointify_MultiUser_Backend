@@ -1,4 +1,7 @@
 const Admin = require('../../models/admin/AdminAccountModel.js');
+const AdminSubscriptionRenewal = require('../../models/superAdmin/SubscriptionRenewalModel.js');
+const CustomerAppointment = require('../../models/admin/CustomerAppointmentsModel.js');
+
 const bcrypt = require('bcrypt');
 
 // 🆕 Create Admin
@@ -74,11 +77,25 @@ exports.updateAdmin = async (req, res) => {
 // ❌ Delete Admin
 exports.deleteAdmin = async (req, res) => {
   try {
-    const deleted = await Admin.destroy({ where: { id: req.params.id } });
-    if (!deleted) return res.status(404).json({ error: 'Admin not found' });
+    const { id } = req.params;
 
-    res.status(200).json({ message: 'Admin deleted' });
+    // 1️⃣ Check if admin exists
+    const admin = await Admin.findByPk(id);
+    if (!admin) return res.status(404).json({ error: "Admin not found" });
+
+    // 2️⃣ Delete related renewals
+    await AdminSubscriptionRenewal.destroy({ where: { adminId: id } });
+
+    // 3️⃣ Delete related customer appointments
+    await CustomerAppointment.destroy({ where: { adminId: id } });
+
+    // 4️⃣ Delete the admin
+    await Admin.destroy({ where: { id } });
+
+    res.status(200).json({ message: "Admin and related data deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete admin', details: error.message });
+    console.error("❌ Delete Admin Error:", error);
+    res.status(500).json({ error: "Failed to delete admin", details: error.message });
   }
 };
+

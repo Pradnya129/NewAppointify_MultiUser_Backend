@@ -27,7 +27,6 @@ const LandingPageData = sequelize.define('LandingPageData', {
   hospitalClinicAddress: { type: DataTypes.STRING, allowNull: true },
 
   profileImage: { type: DataTypes.STRING, allowNull: true },
-  backgroundImage: { type: DataTypes.STRING, allowNull: true },
 
   email: {
     type: DataTypes.STRING,
