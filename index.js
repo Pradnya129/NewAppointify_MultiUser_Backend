@@ -36,10 +36,12 @@ const couponRoutes = require('./routes/superAdmin/coupanRoutes.js');
 const tenantRoutes = require('./routes/superAdmin/tenantRoutes.js');
 
 // ✅ Ensure upload directories exist
+// ✅ Ensure upload directories exist
 const landingPath = path.join(__dirname, 'public', 'uploads', 'landing');
 const section2Path = path.join(__dirname, 'public', 'uploads', 'section2Image');
+const section3Path = path.join(__dirname, 'public', 'uploads', 'section3Image'); // <-- added
 
-[landingPath, section2Path].forEach(dir => {
+[landingPath, section2Path, section3Path].forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -53,8 +55,9 @@ app.use(cors());
 app.use(express.json());
 app.use(errorHandler); // Global error handler
 
-// ✅ Serve all uploads (landing + section2Image)
+// ✅ Serve all uploads (landing + section2Image + section3Image)
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+
 
 // Routes
 app.use('/api/superadmin', superAdminRoutes);

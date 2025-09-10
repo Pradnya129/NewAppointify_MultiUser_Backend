@@ -12,9 +12,13 @@ function ensureDir(dir) {
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     let folder = 'landing';
+
     if (file.fieldname === 'section2_Image') {
       folder = 'section2Image';
+    } else if (file.fieldname === 'section3_Image') {
+      folder = 'section3Image'; // <-- added folder for section3
     }
+
     const dest = path.join(__dirname, '..', 'public', 'uploads', folder);
     ensureDir(dest);
     cb(null, dest);

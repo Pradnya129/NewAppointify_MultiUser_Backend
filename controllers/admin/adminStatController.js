@@ -5,16 +5,14 @@ const AdminStat = require('../../models/admin/AdminStatsModel.js');
 exports.getAllStats = async (req, res) => {
   try {
     const adminId = req.user?.id;
-    const tenantId = req.user?.tenantId;
 
-    if (!adminId || !tenantId) {
+    if (!adminId ) {
       return res.status(400).json({ message: 'Invalid token: Admin ID or Tenant ID missing' });
     }
 
     const stats = await AdminStat.findAll({
       where: {
         adminId,
-        tenantId, // ensures multi-tenant isolation
       },
       order: [['createdAt', 'DESC']], // optional: sort by newest
     });

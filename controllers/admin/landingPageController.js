@@ -17,7 +17,10 @@ exports.createLanding = async (req, res, next) => {
            if (req.files && req.files.section2_Image?.length) {
   updateData.section2_Image = '/uploads/section2Image/' + req.files.section2_Image[0].filename;
 }
-      
+       if (req.files.section3_Image?.length) {
+        data.section3_Image = '/uploads/section3Image/' + req.files.section3_Image[0].filename;
+      }
+    
     }
 
     const result = await LandingPageData.create(data);
@@ -96,7 +99,9 @@ exports.partialUpdate = async (req, res) => {
       if (req.files && req.files.section2_Image?.length) {
   updateData.section2_Image = '/uploads/section2Image/' + req.files.section2_Image[0].filename;
 }
-
+   if (req.files.section3_Image?.length) {
+        updateData.section3_Image = '/uploads/section3Image/' + req.files.section3_Image[0].filename;
+      }
     
     }
 

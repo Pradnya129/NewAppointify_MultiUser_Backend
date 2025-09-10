@@ -8,7 +8,8 @@ router.post(
   '/',
   upload.fields([
     { name: 'profileImage', maxCount: 1 },
-    { name: 'section2_Image', maxCount: 1 }
+    { name: 'section2_Image', maxCount: 1 },
+    { name: 'section3_Image', maxCount: 1 } // <-- added section3_Image
   ]),
   landingCtrl.createLanding
 );
@@ -17,7 +18,8 @@ router.patch(
   '/:id',
   upload.fields([
     { name: 'profileImage', maxCount: 1 },
-    { name: 'section2_Image', maxCount: 1 }
+    { name: 'section2_Image', maxCount: 1 },
+    { name: 'section3_Image', maxCount: 1 } // <-- added section3_Image
   ]),
   landingCtrl.partialUpdate
 );
