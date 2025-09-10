@@ -99,6 +99,7 @@ exports.getAdminSubscriptions = async (req, res, next) => {
       include: [
         {
           model: SubscriptionPlan,
+          as: 'plan',
           attributes: ['id', 'planName', 'monthlyPrice', 'annualPrice'] // pick what you need
         }
       ]
@@ -141,10 +142,12 @@ exports.getAllAdminSubscriptions = async (req, res) => {
       include: [
         {
           model: SubscriptionPlan,
+          as: 'plan',
           attributes: ['id', 'planName', 'monthlyPrice', 'annualPrice']
         },
         {
           model: Admin,
+          as: 'admin',
           attributes: ['id', 'firstName','lastName', 'email'] // include whatever admin fields you want
         }
       ]
