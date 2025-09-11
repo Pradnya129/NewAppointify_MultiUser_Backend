@@ -4,20 +4,13 @@ const Faq = require('../../models/admin/FaqModel.js');
 // 📌 GET /api/faqs (only specific admin's FAQs)
 exports.getAllFaqs = async (req, res) => {
   try {
-    const adminId = req.user?.id; // make sure this comes from JWT middleware
-
-    if (!adminId) {
-      return res.status(400).json({ message: "Admin ID not found in token" });
-    }
-
-    const faqs = await Faq.findAll({
-      where: { adminId }
-    });
+    // Remove adminId filtering to make FAQs public
+    const faqs = await Faq.findAll();
 
     res.status(200).json({
       success: true,
       data: faqs,
-      message: faqs.length ? "FAQs fetched successfully" : "No FAQs found for this admin"
+      message: faqs.length ? "FAQs fetched successfully" : "No FAQs found"
     });
   } catch (err) {
     console.error("Error fetching FAQs:", err);
@@ -32,8 +25,9 @@ exports.getAllFaqs = async (req, res) => {
 // Get specific FAQ
 exports.getFaqById = async (req, res) => {
   try {
+    // Remove adminId filtering to make FAQ public
     const faq = await Faq.findOne({
-      where: { id: req.params.id, adminId: req.user.id }
+      where: { id: req.params.id }
     });
     if (!faq) return res.status(404).json({ message: 'FAQ not found' });
     res.status(200).json(faq);
