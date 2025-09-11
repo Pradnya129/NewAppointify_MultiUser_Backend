@@ -8,6 +8,7 @@ const errorHandler = require('../../middleware/errorHandler.js');
 // Optional: Add middleware like `authenticateAdmin` if needed
 router.post('/',authMiddleware,errorHandler, roleMiddleware('admin'), shiftController.createShift);
 router.get('/',authMiddleware,errorHandler, roleMiddleware('admin'), shiftController.getAllShifts);
+router.get('/',errorHandler, shiftController.getAllShifts);
 router.get('/:id',authMiddleware,errorHandler, roleMiddleware('admin'), shiftController.getShiftById);
 router.put('/:id',authMiddleware,errorHandler, roleMiddleware('admin'), shiftController.updateShift);
 router.delete('/:id',authMiddleware,errorHandler, roleMiddleware('admin'), shiftController.deleteShift);

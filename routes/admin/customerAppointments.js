@@ -9,10 +9,10 @@ const roleMiddleware = require('../../middleware/roleMiddleware.js');
 router.post('/free',authMiddleware, roleMiddleware('admin'), controller.createFreeAppointment);
 
 // ✅ Paid appointment after payment success
-router.post('/paid',authMiddleware, roleMiddleware('admin'), controller.createPaidAppointment);
+router.post('/paid', controller.createPaidAppointment);
 
 // ✅ Razorpay Payment Verification
-router.post('/verify-payment',authMiddleware, roleMiddleware('admin'), controller.verifyPayment);
+router.post('/verify-payment', controller.verifyPayment);
 
 // 📋 All appointments (admin view)
 router.get('/', authMiddleware, roleMiddleware('admin'),controller.getAllAppointments);
