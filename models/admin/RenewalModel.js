@@ -2,7 +2,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/db');
 const Admin = require('../../models/admin/AdminAccountModel.js')
-const Adminplans = require('../../models/admin/AdminPlans.js')
+const SubscriptionPlan = require('../../models/superAdmin/SubscriptionPlanModel.js');
+
 const Renewal = sequelize.define('Renewal', {
   id: {
     type: DataTypes.UUID,
@@ -16,8 +17,8 @@ const Renewal = sequelize.define('Renewal', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'admin_plans',
-      key: 'planId'
+      model: SubscriptionPlan,
+      key: 'id'
     },
     onDelete: 'CASCADE'
   },

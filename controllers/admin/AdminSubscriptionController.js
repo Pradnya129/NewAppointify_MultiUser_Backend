@@ -5,44 +5,15 @@ const AdminSubscription = require('../../models/superAdmin/AdminSubscriptionTrac
 const SubscriptionPlan = require('../../models/superAdmin/SubscriptionPlanModel.js');
 const PaymentTransaction = require('../../models/superAdmin/PaymentTransactionModel.js');
 const Coupon = require('../../models/superAdmin/CouponModel.js'); // Add this
-const CouponUsage = require('../../models/superAdmin/CoupanUsageModel.js'); // if you create this model
+const CouponUsage = require('../../models/superAdmin/CoupanUsageModel.js'); 
+const Renewal=require('../../models/admin/RenewalModel.js')
+const AdminSubscriptionRenewal=require('../../models/superAdmin/SubscriptionRenewalModel.js')
 
 // ✅ Initialize Razorpay
 const razorpay = new Razorpay({
   key_id: process.env.SUPERADMIN_RAZORPAY_KEY_ID,
   key_secret: process.env.SUPERADMIN_RAZORPAY_KEY_SECRET,
 });
-
-// 2️⃣ Create Razorpay order for subscription plan
-// exports.createSubscriptionOrder = async (req, res) => {
-//   const { planId } = req.body;
-//   const adminId = req.user.id;
-
-//   try {
-//     const plan = await SubscriptionPlan.findByPk(planId);
-//     if (!plan) return res.status(404).json({ error: 'Plan not found' });
-
-//     const amountInPaise = plan.monthlyPrice * 100;
-
-//     const order = await razorpay.orders.create({
-//       amount: amountInPaise,
-//       currency: 'INR',
-//       receipt: `receipt_${Date.now()}`.substring(0, 40), // shorter and readable
-//       payment_capture: 1,
-//     });
-
-//     res.status(200).json({
-//       orderId: order.id,
-//       amount: order.amount,
-//       currency: order.currency,
-//       planId,
-//     });
-//   }catch (err) {
-//   console.error("Razorpay Order Error:", err); // Add this line for server log
-//   res.status(500).json({ error: 'Error creating Razorpay order', details: err.message });
-// }
-
-// };
 
 exports.createSubscriptionOrder = async (req, res) => {
   const { planId, couponCode, billingType = 'monthly' } = req.body;
@@ -120,106 +91,81 @@ exports.createSubscriptionOrder = async (req, res) => {
 
 
 
-// 3️⃣ Verify payment and activate subscription
-// exports.verifyAndActivateSubscription = async (req, res) => {
-//   const { razorpay_payment_id, razorpay_order_id, planId } = req.body;
-//   const adminId = req.user.id;
-
-//   try {
-//     // 🔍 Fetch subscription plan
-//     const plan = await SubscriptionPlan.findByPk(planId);
-//     if (!plan) return res.status(404).json({ error: 'Plan not found' });
-
-//     // 💳 Record transaction
-//   const transaction = await PaymentTransaction.create({
-//   transactionId: razorpay_payment_id,   // ✅ Add this
-//   provider: 'razorpay',                 // ✅ Add this
-//   type: 'subscription',                 // ✅ Add this (or 'purchase' / 'plan' depending on your logic)
-//   paymentId: razorpay_payment_id,
-//   orderId: razorpay_order_id,
-//   adminId,
-//   planId,
-//   amount: plan.monthlyPrice,
-//   status: 'Paid' ,
-//   method: 'razorpay'
-// });
-
-
-//     // 📅 Activate subscription
-//     const subscription = await AdminSubscription.create({
-//       adminId,
-//     subscriptionPlanId: planId,
-//       paymentId: transaction.id,
-//       startDate: new Date(),
-//       endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
-//       isActive: true,
-//       paymentStatus:"Paid"
-//     });
-
-//     res.status(200).json({
-//       message: 'Subscription activated successfully',
-//       subscription
-//     });
-
-//   } catch (err) {
-//     res.status(500).json({ error: 'Subscription activation failed', details: err.message });
-//   }
-// };
-
 exports.verifyAndActivateSubscription = async (req, res) => {
   const {
     razorpay_payment_id,
     razorpay_order_id,
+    razorpay_signature,
     planId,
     couponId,
-    billingType = 'monthly'
+    billingType = "monthly"
   } = req.body;
 
   const adminId = req.user.id;
 
   try {
+    // 🔍 Log Razorpay params for debugging
+    console.log("🔹 Razorpay Verification Params:");
+    console.log("   razorpay_payment_id:", razorpay_payment_id);
+    console.log("   razorpay_order_id:", razorpay_order_id);
+    console.log("   razorpay_signature:", razorpay_signature);
+
+    // 1️⃣ Verify Razorpay signature
+    const generatedSignature = crypto
+      .createHmac("sha256", process.env.SUPERADMIN_RAZORPAY_KEY_SECRET)
+      .update(razorpay_order_id + "|" + razorpay_payment_id)
+      .digest("hex");
+
+    if (generatedSignature !== razorpay_signature) {
+      console.error("❌ Signature mismatch!");
+      return res
+        .status(400)
+        .json({ error: "Invalid signature. Payment verification failed." });
+    }
+    console.log("✅ Signature verified successfully");
+
+    // 2️⃣ Fetch plan
     const plan = await SubscriptionPlan.findByPk(planId);
-    if (!plan) return res.status(404).json({ error: 'Plan not found' });
+    if (!plan) return res.status(404).json({ error: "Plan not found" });
 
-    const price = billingType === 'annual'
-      ? parseFloat(plan.annualPrice)
-      : parseFloat(plan.monthlyPrice);
+    const price =
+      billingType === "annual"
+        ? parseFloat(plan.annualPrice)
+        : parseFloat(plan.monthlyPrice);
 
-    const durationInMonths = billingType === 'annual' ? 12 : 1;
+    const durationInMonths = billingType === "annual" ? 12 : 1;
 
-    // Record payment transaction
+    // 3️⃣ Record payment transaction
     const transaction = await PaymentTransaction.create({
       transactionId: razorpay_payment_id,
-      provider: 'razorpay',
-      type: 'subscription',
+      provider: "razorpay",
+      type: "subscription",
       paymentId: razorpay_payment_id,
       orderId: razorpay_order_id,
       adminId,
       planId,
       amount: price,
-      status: 'Paid',
-      method: 'razorpay'
+      status: "Paid",
+      method: "razorpay",
     });
 
-    // Calculate new subscription period
+    // 4️⃣ Calculate new subscription period
     const startDate = new Date();
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + durationInMonths);
 
-    // Check if admin already has a subscription
+    // 5️⃣ Create or update subscription
     let existingSub = await AdminSubscription.findOne({ where: { adminId } });
 
     if (existingSub) {
-      // Renewal: update old subscription
       existingSub.subscriptionPlanId = planId;
       existingSub.startDate = startDate;
       existingSub.endDate = endDate;
       existingSub.paymentId = transaction.id;
-      existingSub.paymentStatus = 'Paid';
+      existingSub.paymentStatus = "Paid";
       existingSub.isActive = true;
       await existingSub.save();
     } else {
-      // New subscription
       existingSub = await AdminSubscription.create({
         adminId,
         subscriptionPlanId: planId,
@@ -227,24 +173,37 @@ exports.verifyAndActivateSubscription = async (req, res) => {
         startDate,
         endDate,
         isActive: true,
-        paymentStatus: "Paid"
+        paymentStatus: "Paid",
       });
     }
 
-    // Track renewal
-    await AdminSubscriptionRenewal.create({
+    // 6️⃣ Track renewal (superadmin view)
+  await AdminSubscriptionRenewal.create({
+  adminId,
+  planId,                       // This stays as the subscription plan id
+  subscriptionPlanId: existingSub.id,  // ✅ Must be AdminSubscription.id
+  startDate,
+  endDate,
+  amount: price,
+  status: "Active",
+  couponCode: couponId ? (await Coupon.findByPk(couponId))?.code : null,
+  discountAmount: couponId ? (await Coupon.findByPk(couponId))?.discountValue || 0 : 0,
+});
+
+
+    // 7️⃣ Track renewal (admin view)
+    await Renewal.create({
       adminId,
-      planId,
-      subscriptionPlanId: planId,
+      planId: planId,  
+      duration: billingType === "annual" ? "12 months" : "1 month",
       startDate,
       endDate,
       amount: price,
-      status: 'Active',
-      couponCode: couponId ? (await Coupon.findByPk(couponId))?.code : null,
-      discountAmount: couponId ? (await Coupon.findByPk(couponId))?.discountValue || 0 : 0
+      status: "Paid",
+      description: `Renewed via Razorpay (Txn: ${razorpay_payment_id})`,
     });
 
-    // Coupon usage update
+    // 8️⃣ Update coupon usage
     if (couponId) {
       const coupon = await Coupon.findByPk(couponId);
       if (coupon) {
@@ -253,21 +212,25 @@ exports.verifyAndActivateSubscription = async (req, res) => {
 
         await CouponUsage.create({
           adminId,
-          couponId: coupon.id
+          couponId: coupon.id,
         });
       }
     }
 
     res.status(200).json({
-      message: 'Subscription activated successfully',
-      subscription: existingSub
+      message: "Subscription activated successfully",
+      subscription: existingSub,
     });
-
   } catch (err) {
-    console.error("Subscription Error:", err);
-    res.status(500).json({ error: 'Subscription activation failed', details: err.message });
+    console.error("❌ Subscription Error:", err.message);
+    res
+      .status(500)
+      .json({ error: "Subscription activation failed", details: err.message });
   }
 };
+
+
+
 
 
 
