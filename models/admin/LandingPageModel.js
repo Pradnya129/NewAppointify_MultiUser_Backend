@@ -10,12 +10,7 @@ const LandingPageData = sequelize.define('LandingPageData', {
 
   adminId: {
     type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: Admin,
-      key: 'id'
-    },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
 
   fullName: { type: DataTypes.STRING, allowNull: true },
@@ -65,5 +60,8 @@ locationIframeURL: {
   tableName: 'Landing_Page',
   timestamps: true
 });
+
+// Define associations
+LandingPageData.belongsTo(Admin, { foreignKey: 'adminId', onDelete: 'CASCADE', constraintName: 'fk_landing_page_admin_id' });
 
 module.exports = LandingPageData;
