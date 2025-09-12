@@ -1,13 +1,23 @@
 const Admin = require('../../models/admin/AdminAccountModel.js');
 const AdminSubscriptionRenewal = require('../../models/superAdmin/SubscriptionRenewalModel.js');
 const CustomerAppointment = require('../../models/admin/CustomerAppointmentsModel.js');
+const Tenant = require('../../models/superAdmin/TenantsModel.js'); // import Tenant
 
 const bcrypt = require('bcrypt');
 
 // 🆕 Create Admin
 exports.createAdmin = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phoneNumber, userName, businessName, tenantId, role } = req.body;
+    const { firstName, lastName, email, password, phoneNumber, userName, businessName, role } = req.body;
+
+    // Auto-create tenant for this admin
+    const tenant = await Tenant.create({
+      name: businessName || `${firstName} ${lastName}'s Business`,
+      domain: `${firstName.toLowerCase()}.${Date.now()}.com`, // generate unique domain
+      email: email,
+      status: 'active',
+      createdBy: null
+    });
 
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
@@ -20,7 +30,7 @@ exports.createAdmin = async (req, res) => {
       userName,
       businessName,
       passwordHash,
-      tenantId,
+      tenantId: tenant.id, // assign the new tenant id
       role: role || 'admin'
     });
 
